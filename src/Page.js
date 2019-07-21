@@ -2,6 +2,7 @@ import React from 'react';
 import { Input, Button, Alert } from 'antd';
 import styled from 'styled-components';
 import { InputCondition } from './InputCondition';
+import { regexEscape } from './utils'
 
 const Container = styled.div`
   height: 100%;
@@ -22,16 +23,35 @@ const StyledAlert = styled(Alert)`
 
 const useConditions = () => {
   const conditionsValues = [
-    { name: 'End with', isMatching: (input, value) => false },
-    { name: 'Start with', isMatching: (input, value) => true },
-    { name: 'Contains', isMatching: (input, value) => true },
-    { name: 'Does not contains', isMatching: (input, value) => true }
+    {
+      name: 'End with',
+      isMatching: (input, value) => {
+        const pattern = RegExp(`${regexEscape(value)}$`);
+        return pattern.test(input)
+      }
+    },
+    { name: 'Start with', isMatching: (input, value) => {
+      const pattern = RegExp(`^${regexEscape(value)}`);
+      return pattern.test(input)
+    } },
+    { name: 'Contains', isMatching: (input, value) => {
+      const pattern = RegExp(`${regexEscape(value)}`);
+      return pattern.test(input)
+    } },
+    { name: 'Does not contains', isMatching: (input, value) => {
+      const pattern = RegExp(`${regexEscape(value)}`);
+      return !pattern.test(input)
+    } }
   ];
+
+  const gatesValues = ['AND', 'OR'];
+
   const defaultCondition = {
-    gate: 'AND',
+    gate: gatesValues[0],
     type: conditionsValues[0],
     input: ''
   };
+
   const [conditions, setConditions] = React.useState([]);
 
   const setSpecificConditions = (index, value) => {
@@ -46,7 +66,19 @@ const useConditions = () => {
     setConditions(newConditions);
   };
 
-  return [conditions, setSpecificConditions, addNewCondition, conditionsValues];
+  const removeCondition = (index) => {
+    const newConditions = conditions.filter((value, idx) => index !== idx)
+    setConditions(newConditions)
+  }
+
+  return [
+    conditions,
+    setSpecificConditions,
+    addNewCondition,
+    removeCondition,
+    conditionsValues,
+    gatesValues
+  ];
 };
 
 export const Page = props => {
@@ -55,7 +87,9 @@ export const Page = props => {
     conditions,
     setCondition,
     addNewCondition,
-    conditionsValues
+    removeCondition,
+    conditionsValues,
+    gatesValues
   ] = useConditions();
 
   const handleChange = e => {
@@ -69,9 +103,8 @@ export const Page = props => {
         : acc || condition.type.isMatching(input, condition.input),
     true
   );
-  const alertMessage = isMatching ? 'It\'s matching' : 'it\'s not matching !';
-  const alertType = isMatching ? 'success' : 'error'
-
+  const alertMessage = isMatching ? "It's matching" : "it's not matching !";
+  const alertType = isMatching ? 'success' : 'error';
 
   return (
     <Container>
@@ -86,7 +119,10 @@ export const Page = props => {
           key={index}
           condition={condition}
           conditions={conditionsValues}
+          gates={gatesValues}
+          showGate={index !== 0}
           onChange={setCondition.bind(null, index)}
+          onDelete={removeCondition.bind(null, index)}
         />
       ))}
       <StyledButton onClick={addNewCondition}>Add Condition</StyledButton>
