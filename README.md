@@ -1,3 +1,13 @@
+Proof of Concept.
+
+Validate an input with editable conditions for the user.
+Helps common users to understands gate logics.
+
+You can try here :
+ - http://pattern-validator.s3-website.eu-west-3.amazonaws.com/
+ 
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
